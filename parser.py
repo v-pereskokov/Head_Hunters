@@ -38,6 +38,9 @@ def parse(html):
         return works
 
 def handling(page):
+    """
+    Обработка информации
+    """
     return page
 
 def main():
