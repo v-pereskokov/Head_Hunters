@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 
+import csv
 import urllib.request
 from bs4 import BeautifulSoup
 
+URL = 'https://hh.ru/search/vacancy?text=%D0%BF%D1%80%D0%BE%D0%B3%D1%80%D0%B0%D0%BC%D0%BC%D0%B8%D1%81%D1%82&area='
 LANGUAGES = ["C++", "C#", "PHP", "HTML", "PYTHON", "DJANGO", "JAVA", "SQL", "DELPHI", "PASCAL", "JOOMLA", "CSS"]
 TITLE = 'title'
-COST = 'cost'
+PRICE = 'price'
 SKILL = 'skill'
 
 def get_html(url):
@@ -18,35 +20,40 @@ def parse(html):
     works = []
     for row in table.find_all('tr'):
         titles = row.find_all('div', class_ = 'search-result-item__head')
-        costs = row.find_all('div', class_ = 'b-vacancy-list-salary')
+        prices = row.find_all('div', class_ = 'b-vacancy-list-salary')
         skills = row.find_all('div', class_ = 'search-result-item__snippet')
         for i in range(len(titles)):
             title = titles[i].a.text
             skill = skills[i].text
             for language in LANGUAGES:
                 if title.find(language) is not -1 and title not in works:
-                    if i < len(costs):
-                        if costs[i].meta.text is not None:
-                            cost = costs[i].meta.text
+                    if i < len(prices):
+                        if prices[i].meta.text is not None:
+                            price = prices[i].meta.text
                         else:
-                            cost = None
+                            price = None
                         works.append({
                             TITLE: title,
-                            COST: cost,
+                            PRICE: price,
                             SKILL: skill
                         })
         return works
 
-def handling(page):
-    """
-    Обработка информации
-    """
-    return page
+def save(works, path):
+    with open(path, 'w') as csv_file:
+        writer = csv.writer(csv_file)
+        writer.writerow(('Проект', 'Цена', 'Требования'))
+        writer.writerows(
+            (work[TITLE], work[PRICE], work[SKILL]) for work in works)
 
 def main():
-    page = []
-    for i in range(51):
-        handling(parse(get_html('https://hh.ru/search/vacancy?text=%D0%BF%D1%80%D0%BE%D0%B3%D1%80%D0%B0%D0%BC%D0%BC%D0%B8%D1%81%D1%82&area=' + str(i))))
+    works = []
+    for page in range(1, 51):
+        print('Parsing %d%% (%d/%d)' % (page / 51 * 100, page, 51))
+        works.extend(parse(get_html(URL + str(page))))
+    print('Saving...')
+    save(works, 'works.csv')
+
 
 main()
 
