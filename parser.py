@@ -49,7 +49,7 @@ def save(works, path):
 def main():
     works = []
     for page in range(51):
-        print('Parsing %d%% (%d/%d)' % (page / 51 * 100, page, 51))
+        print('Parsing %d%% (%d/%d)' % ((page + 1)/ 51 * 100, page + 1, 51))
         works.extend(parse(get_html(URL + str(page))))
     print('Saving...')
     save(works, 'works.csv')
