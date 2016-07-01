@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
 import csv
+import time
+import random as rand
 import urllib.request
 from bs4 import BeautifulSoup
 
@@ -10,23 +12,25 @@ TITLE = 'title'
 PRICE = 'price'
 SKILL = 'skill'
 
+
 def get_html(url):
     response = urllib.request.urlopen(url)
     return response.read()
 
+
 def parse(html):
-    soup = BeautifulSoup(html, "html.parser")
-    table = soup.find('table', class_ = 'l l_auto HH-StickyParentAreaResizer-Content')
+    soup = BeautifulSoup(html, 'html.parser')
+    table = soup.find('table', class_='l l_auto HH-StickyParentAreaResizer-Content')
     works = []
     for row in table.find_all('tr'):
-        titles = row.find_all('div', class_ = 'search-result-item__head')
-        prices = row.find_all('div', class_ = 'b-vacancy-list-salary')
-        skills = row.find_all('div', class_ = 'search-result-item__snippet')
+        titles = row.find_all('div', class_='search-result-item__head')
+        prices = row.find_all('div', class_='b-vacancy-list-salary')
+        skills = row.find_all('div', class_='search-result-item__snippet')
         for i in range(len(titles)):
             title = titles[i].a.text
             skill = skills[i].text
             for language in LANGUAGES:
-                if title.find(language) is not -1 and title not in works:
+                if title.find(language) is not -1 and title not in works and skills not in works:
                     if i < len(prices):
                         if prices[i].meta.text is not None:
                             price = prices[i].meta.text
@@ -39,6 +43,7 @@ def parse(html):
                         })
         return works
 
+
 def save(works, path):
     with open(path, 'w') as csv_file:
         writer = csv.writer(csv_file)
@@ -46,17 +51,20 @@ def save(works, path):
         writer.writerows(
             (work[TITLE], work[PRICE], work[SKILL]) for work in works)
 
+
 def main():
     works = []
-    for page in range(51):
-        print('Parsing %d%% (%d/%d)' % ((page + 1)/ 51 * 100, page + 1, 51))
-        works.extend(parse(get_html(URL + str(page))))
+    print('Parsing...')
+    for page in range(rand.randint(40, 51)):
+        try:
+            works.extend(parse(get_html(URL + str(page))))
+        except TimeoutError:
+            time.sleep(100)
     print('Saving...')
     save(works, 'works.csv')
 
 
-main()
-
 if __name__ == "__main__":
     import doctest
+
     doctest.testmod()
