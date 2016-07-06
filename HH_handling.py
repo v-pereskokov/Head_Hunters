@@ -3,8 +3,9 @@
 import csv
 import HH_parser
 
-LANGUAGES = ["C++", "C#", "PHP", "HTML", "PYTHON", "DJANGO", "JAVA", "JAVASCRIPT", "MYSQL", "SQL", "DELPHI", "PASCAL", "JOOMLA", "CSS", "PERL",
-             "1C", "RUBY", "GO", "GOLANG", "RUST", "SWIFT", "OBJECTIVE C", "COCOA", "LINUX", "BASIC", "IOS"]
+LANGUAGES = ["C++", "C#", "PHP", "HTML", "PYTHON", "DJANGO", "JAVA ", "JAVASCRIPT", "MYSQL", "DELPHI", "PASCAL",
+             "JOOMLA", "CSS", "PERL", "1C", "RUBY", "GO", "GOLANG", "RUST", "SWIFT", "OBJECTIVE C", "COCOA", "LINUX",
+             "BASIC", "IOS"]
 LANGUAGE = 'language'
 TITLE = 'title'
 PRICE = 'price'
@@ -39,12 +40,14 @@ def handling():
                     else:
                         price += int(jobs[i][PRICE])
                         count += 1
-        add_language = {
-            LANGUAGE: language,
-            PRICE: price // count
-        }
-        if add_language not in languages:
-            languages.append(add_language)
+        if count is not 0:
+            add_language = {
+                LANGUAGE: language,
+                PRICE: price // count
+            }
+            if add_language not in languages:
+                languages.append(add_language)
         is_work = False
+        count = 0
     print('Saving languages...')
     save_language(languages, 'languages.csv')
