@@ -49,5 +49,6 @@ def handling():
                 languages.append(add_language)
         is_work = False
         count = 0
+    languages.sort(key=lambda x: x[PRICE], reverse=True)
     print('Saving languages...')
     save_language(languages, 'languages.csv')
