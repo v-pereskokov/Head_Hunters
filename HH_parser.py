@@ -96,7 +96,7 @@ def string_to_date(date):
     return result
 
 
-def reading_html(html, jobs, _class, page, opt):
+def reading_html(html, jobs, _class):
     soup = BeautifulSoup(html, 'html.parser')
     table = soup.find('table', class_='l l_auto')
     all_items = table.find('div', class_='search-result') \
@@ -127,10 +127,10 @@ def parsing():
     print('Parsing jobs...')
     for page in range(10):
         reading_html(get_html(URL_PREMIUM + str(page)), jobs,
-                     'search-result-item search-result-item_premium  search-result-item_premium', page, 'prem')
+                     'search-result-item search-result-item_premium  search-result-item_premium')
     for page in range(99):
         reading_html(get_html(URL_STANDART + str(page)), jobs,
-                     'search-result-item search-result-item_standard ', page, 'usual')
+                     'search-result-item search-result-item_standard ')
     print('Saving jobs...')
     save_jobs(jobs, 'all_jobs.csv')
     return jobs
