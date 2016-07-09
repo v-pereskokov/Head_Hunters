@@ -6,6 +6,7 @@ from bs4 import BeautifulSoup
 URL = 'http://www.banki.ru/products/currency/cb/'
 NAME = 'name'
 CURRENCY = 'currency'
+UNIT = 'unit'
 
 
 def get_html(url):
@@ -18,21 +19,22 @@ def parse():
     table = soup.find('table',
                       class_='standard-table standard-table--row-highlight')
     currencys = []
-    for i in [0, 1, 12, 14, 26]:
-        all = table.find('tbody').find_all('tr')[i]
-        name = all.find_all('td')[0].text
-        currency = all.find_all('td')[3].text
+    for i in [0, 1, 5, 12, 14, 26]:
+        all = table.find('tbody').find_all('tr')[i].find_all('td')
+        name = all[0].text
+        currency = all[3].text
+        unit = all[1].text
         result_name = ''
-        result_currency = ''
-        if i != 26:
+        if i == 5:
+            result_name = 'бел'
+        elif i == 26:
+            result_name = 'грн'
+        else:
             for j in range(12, 15):
                 result_name += name[j]
-        else:
-            result_name = 'грн'
-        for k in range(6, 13):
-            result_currency += currency[k]
         currencys.append({
             NAME: result_name,
-            CURRENCY: result_currency
-         })
+            CURRENCY: float(currency),
+            UNIT: int(unit)
+        })
     return currencys
