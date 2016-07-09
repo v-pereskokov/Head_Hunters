@@ -2,6 +2,7 @@
 
 import csv
 import urllib.request as urllib
+from datetime import datetime
 from bs4 import BeautifulSoup
 import currency_parser as cur_pars
 
@@ -10,6 +11,12 @@ URL_STANDART = 'https://hh.ru/search/vacancy?enable_snippets=true&text=%D0%BF%D1
 TITLE = 'title'
 PRICE = 'price'
 SKILL = 'skill'
+DATE = 'date'
+YEAR = 'year'
+MONTH = 'month'
+DAY = 'day'
+months = ['янвяр', 'феврал', 'март', 'апрел', 'ма', 'июн', 'июл', 'август', 'сентябр', 'октябр', 'ноябр',
+          'декабр']
 
 
 def get_html(url):
@@ -29,12 +36,26 @@ def clear_price(price):
 def which_currency(price):
     currency = ''
     for char in price:
-        if char == 'U' or char == 'E' or char == 'K' or char == 'г':
+        if char in ['U', 'E', 'K', 'г']:
             index = price.index(char)
             for i in range(index, index + 3):
                 currency += price[i]
             break
+        elif char == 'е':
+            index = price.index(char) - 1
+            for i in range(index, index + 3):
+                currency += price[i]
+            break
     return currency
+
+
+def save_jobs(jobs, path):
+    with open(path, 'w') as csv_file:
+        writer = csv.writer(csv_file)
+        writer.writerow(('Название', 'Цена', 'Требование', 'Дата(Д/М/Г)'))
+        writer.writerows(
+            (job[TITLE], job[PRICE], job[SKILL],
+             (str(job[DATE][DAY]) + '.' + str(job[DATE][MONTH]) + '.' + str(job[DATE][YEAR]))) for job in jobs)
 
 
 def calculation(price):
@@ -43,55 +64,75 @@ def calculation(price):
     price = clear_price(price)
     for i in range(len(currencys)):
         if currency == currencys[i]['name']:
-            price = int(price) * int(float(currencys[i]['currency']))
+            price = int(price) * int(float(currencys[i]['currency'])) / int(currencys[i]['unit'])
             break
-    return price
+    return int(price)
 
 
-def parse(html, jobs, _class):
+def string_to_date(date):
+    month = ''
+    day = ''
+    for char in date:
+        if char.isdigit():
+            index = date.index(char)
+            while date[index].isdigit():
+                day += date[index]
+                index += 1
+        if char.isalpha():
+            index = date.index(char)
+            for i in range(index, len(date) - 1):
+                month += date[index]
+                index += 1
+            break
+    for month_ in months:
+        if month_ == month.lower():
+            month = months.index(month_) + 1
+            break
+    result = {
+        YEAR: datetime.now().year,
+        MONTH: month,
+        DAY: day
+    }
+    return result
+
+
+def reading_html(html, jobs, _class, page, opt):
     soup = BeautifulSoup(html, 'html.parser')
     table = soup.find('table', class_='l l_auto')
     all_items = table.find('div', class_='search-result') \
         .find_all('div', class_=_class)
     for i in range(len(all_items)):
-        title = all_items[i].find('div', class_='search-result-item__head').a.text
         if all_items[i].find('div', class_='b-vacancy-list-salary') is not None:
             price = all_items[i].find('div', class_='b-vacancy-list-salary').meta.text
+            price = calculation(price)
         else:
             price = None
-        if price is not None:
-            price = calculation(price)
+        title = all_items[i].find('div', class_='search-result-item__head').a.text
         skills = all_items[i].find_all('div', class_='search-result-item__snippet')
         skill = skills[0].text + ' ' + skills[1].text
+        date = all_items[i].find('span', class_='b-vacancy-list-date').text
         job = {
             TITLE: title,
             PRICE: price,
-            SKILL: skill
+            SKILL: skill,
+            DATE: string_to_date(date)
         }
         if job not in jobs:
             jobs.append(job)
-    return jobs
-
-
-def save(jobs, path):
-    with open(path, 'w') as csv_file:
-        writer = csv.writer(csv_file)
-        writer.writerow(('Название', 'Цена', 'Требоавние'))
-        writer.writerows(
-            (job[TITLE], job[PRICE], job[SKILL]) for job in jobs)
+    jobs.sort(key=lambda x: x[DATE][DAY])
 
 
 def parsing():
     jobs = []
     print('Parsing jobs...')
     for page in range(10):
-        parse(get_html(URL_PREMIUM + str(page)), jobs,
-              'search-result-item search-result-item_premium  search-result-item_premium')
+        reading_html(get_html(URL_PREMIUM + str(page)), jobs,
+                     'search-result-item search-result-item_premium  search-result-item_premium', page, 'prem')
     for page in range(99):
-        parse(get_html(URL_STANDART + str(page)), jobs,
-              'search-result-item search-result-item_standard ')
+        reading_html(get_html(URL_STANDART + str(page)), jobs,
+                     'search-result-item search-result-item_standard ', page, 'usual')
     print('Saving jobs...')
-    save(jobs, 'jobs.csv')
+    save_jobs(jobs, 'all_jobs.csv')
     return jobs
 
 
