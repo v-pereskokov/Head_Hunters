@@ -4,51 +4,64 @@ import csv
 import HH_parser
 
 LANGUAGES = ["C++", "C#", "PHP", "HTML", "PYTHON", "DJANGO", "JAVA ", "JAVASCRIPT", "MYSQL", "DELPHI", "PASCAL",
-             "JOOMLA", "CSS", "PERL", "1C", "RUBY", "GO", "GOLANG", "RUST", "SWIFT", "OBJECTIVE C", "COCOA", "LINUX",
+             "JOOMLA", "CSS", "PERL", "1C", "RUBY", " GO ", "GOLANG", "RUST", "SWIFT", "OBJECTIVE C", "COCOA", "LINUX",
              "BASIC", "IOS"]
 LANGUAGE = 'language'
 TITLE = 'title'
 PRICE = 'price'
+MAX_PRICE = 'max_price'
+MIN_PRICE = 'min_price'
+MID_PRICE = 'mid_price'
 SKILL = 'skill'
+COUNT = 'count'
 
 
 def save_language(languages, path):
     with open(path, 'w') as csv_file:
         writer = csv.writer(csv_file)
-        writer.writerow(('Область', 'Средняя зарплата'))
+        writer.writerow(
+            ('Область', 'Средняя зарплата', 'Минимальная зарплата', 'Максимальная зарплата', 'Число вакансий'))
         writer.writerows(
-            (language[LANGUAGE], language[PRICE]) for language in languages)
+            (language[LANGUAGE], language[MID_PRICE], language[MIN_PRICE], language[MAX_PRICE], language[COUNT]) for
+            language in languages)
+
+
+def middle(prices):
+    mid = 0
+    for i in prices:
+        mid += i
+    return mid // len(prices)
+
+
+def write_language(jobs):
+    languages = []
+    count = 0
+    for language in LANGUAGES:
+        prices = []
+        for i in range(len(jobs)):
+            if (jobs[i][TITLE] + ' ' + jobs[i][SKILL]).upper().find(language) is not -1:
+                count += 1
+                if jobs[i][PRICE] is not None:
+                    prices.append(int(jobs[i][PRICE]))
+        if len(prices) is not 0:
+            add = {
+                LANGUAGE: language,
+                PRICE: prices,
+                MID_PRICE: middle(prices),
+                MIN_PRICE: min(prices),
+                MAX_PRICE: max(prices),
+                COUNT: count
+            }
+            if add not in languages:
+                languages.append(add)
+        count = 0
+    languages.sort(key=lambda x: x[COUNT], reverse=True)
+    return languages
 
 
 def handling():
     jobs = HH_parser.parsing()
     print('Handling languages...')
-    languages = []
-    language = ''
-    price = 0
-    count = 0
-    is_work = False
-    for lang in LANGUAGES:
-        for i in range(len(jobs)):
-            if jobs[i][PRICE] is not None:
-                if jobs[i][TITLE].upper().find(lang) is not -1 or jobs[i][SKILL].upper().find(lang) is not -1:
-                    if not is_work:
-                        language = lang
-                        price = int(jobs[i][PRICE])
-                        count += 1
-                        is_work = True
-                    else:
-                        price += int(jobs[i][PRICE])
-                        count += 1
-        if count is not 0:
-            add_language = {
-                LANGUAGE: language,
-                PRICE: price // count
-            }
-            if add_language not in languages:
-                languages.append(add_language)
-        is_work = False
-        count = 0
-    languages.sort(key=lambda x: x[PRICE], reverse=True)
+    languages = write_language(jobs)
     print('Saving languages...')
     save_language(languages, 'languages.csv')
