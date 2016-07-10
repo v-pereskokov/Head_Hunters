@@ -16,11 +16,17 @@ SKILL = 'skill'
 COUNT = 'count'
 
 
-def save_language(languages, path):
+def date_to_string(date):
+    return str(date['day']) + '.' + str(date['month']) + '.' + str(date['year'])
+
+
+def save_language(languages, jobs, path):
     with open(path, 'w') as csv_file:
         writer = csv.writer(csv_file)
         writer.writerow(
-            ('Область', 'Средняя зарплата', 'Минимальная зарплата', 'Максимальная зарплата', 'Число вакансий'))
+            ('Область', 'Средняя зарплата', 'Минимальная зарплата', 'Максимальная зарплата',
+             'Число вакансий(в период с ' + date_to_string(jobs[len(jobs) - 1]['date']) + ' по ' + date_to_string(
+                 jobs[0]['date']) + ')'))
         writer.writerows(
             (language[LANGUAGE], language[MID_PRICE], language[MIN_PRICE], language[MAX_PRICE], language[COUNT]) for
             language in languages)
@@ -64,4 +70,4 @@ def handling():
     print('Handling languages...')
     languages = write_language(jobs)
     print('Saving languages...')
-    save_language(languages, 'languages.csv')
+    save_language(languages, jobs, 'languages.csv')
