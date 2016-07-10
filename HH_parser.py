@@ -73,19 +73,16 @@ def calculation(price):
 def string_to_date(date):
     month = ''
     day = ''
-    for char in date:
-        if char.isdigit():
-            index = date.index(char)
-            while date[index].isdigit():
-                day += date[index]
-                index += 1
-            break
-    for char in date:
-        if char.isalpha():
-            index = date.index(char)
-            for i in range(index, len(date) - 1):
-                month += date[index]
-                index += 1
+    for i in range(len(date)):
+        if date[i].isdigit():
+            while date[i].isdigit():
+                day += date[i]
+                i += 1
+            i += 1
+        if date[i].isalpha():
+            for j in range(i, len(date) - 1):
+                month += date[i]
+                i += 1
             break
     for month_ in months:
         if month_ == month.lower():
