@@ -6,7 +6,8 @@ from datetime import datetime
 from bs4 import BeautifulSoup
 import currency_parser as cur_pars
 
-URL_PREMIUM = 'https://hh.ru/search/vacancy?text=%D0%BF%D1%80%D0%BE%D0%B3%D1%80%D0%B0%D0%BC%D0%BC%D0%B8%D1%81%D1%82&area='
+URL_PREMIUM = \
+    'https://hh.ru/search/vacancy?text=%D0%BF%D1%80%D0%BE%D0%B3%D1%80%D0%B0%D0%BC%D0%BC%D0%B8%D1%81%D1%82&area='
 URL_STANDART = 'https://hh.ru/search/vacancy?enable_snippets=true&text=%D0%BF%D1%80%D0%BE%D0%B3%D1%80%D0%B0%D0%BC%D0%BC%D0%B8%D1%81%D1%82&search_field=name&clusters=true&page='
 TITLE = 'title'
 PRICE = 'price'
@@ -78,6 +79,8 @@ def string_to_date(date):
             while date[index].isdigit():
                 day += date[index]
                 index += 1
+            break
+    for char in date:
         if char.isalpha():
             index = date.index(char)
             for i in range(index, len(date) - 1):
@@ -91,7 +94,7 @@ def string_to_date(date):
     result = {
         YEAR: datetime.now().year,
         MONTH: month,
-        DAY: day
+        DAY: int(day)
     }
     return result
 
@@ -119,7 +122,7 @@ def reading_html(html, jobs, _class):
         }
         if job not in jobs:
             jobs.append(job)
-    jobs.sort(key=lambda x: x[DATE][DAY])
+    jobs.sort(key=lambda x: x[DATE][DAY], reverse=True)
 
 
 def parsing():
