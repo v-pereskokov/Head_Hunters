@@ -3,7 +3,7 @@
 import csv
 import HH_parser
 
-LANGUAGES = ["C++", "C#", "PHP", "HTML", "PYTHON", "DJANGO", "JAVA ", "JAVASCRIPT", "MYSQL", "DELPHI", "PASCAL",
+LANGUAGES = ["C++", " C ", "C#", "PHP", "HTML", "PYTHON", "DJANGO", "JAVA ", "JAVASCRIPT", "MYSQL", "DELPHI", "PASCAL",
              "JOOMLA", "CSS", "PERL", "1C", "RUBY", " GO ", "GOLANG", "RUST", "SWIFT", "OBJECTIVE C", "LINUX",
              "BASIC", "IOS"]
 LANGUAGE = 'language'
